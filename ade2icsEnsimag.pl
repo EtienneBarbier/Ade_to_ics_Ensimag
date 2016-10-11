@@ -22,6 +22,8 @@ use utf8;
 use WWW::Mechanize;
 use HTTP::Cookies;
 use Time::Local;
+use Getopt::Std;
+use Getopt::Long;
 binmode STDOUT, ':encoding(utf-8)';
 
 #----------------------Beginning Configuration----------------------
@@ -31,9 +33,9 @@ $default_config{'url'} = 'my_url';
 # Arguments of the ade calendar.
 $default_config{'arguments'} = 'my_args';
 # Login for HTTP authentification.
-$default_config{'login'} = 'my_login';
+$default_config{'login'} = '';# my_login
 # Password for HTTP authentification.
-$default_config{'password'} = 'my_password';
+$default_config{'password'} = '';# my_password
 # Destination of output file.  set "file_name.ics" to have the file in the local folder.
 $default_config{'destination'} = 'my_calendar.ics';
 
@@ -45,9 +47,52 @@ $default_config{'destination'} = 'my_calendar.ics';
 #
 #----------------------End Configuration----------------------
 
+my %opts=();
+
+my $verbose=0;
+GetOptions(\%opts, 'u=s', 'a=s', 'l=s', 'p=s', 'd=s', 'help');
+
+if(defined $opts{help}){
+  print "Welcome in the help of the Ade_to_ics_Ensimag script. \n";
+  print "To use this script please change the default config in the script file or use the followings options \n";
+  print "\n";
+  print "-u your_url           with your_url the url of the ade calendar\n";
+  print "-a your_args          with your_args the arguments of the ade calendar\n";
+  print "-l your_login         with your_login your login for the ade calendar\n";
+  print "-p your_password      with your_password your password for the ade calendar\n";
+  print "-d your_destination   with your_destination the location where the .ics file should be saved. By default it's will be my_calendar.ics \n";
+  print "\n";
+  print "Exemple : \n";
+  print "if your direct url for ade calendar is : https://edt.grenoble-inp.fr/2016-2017/etudiant/ensimag?resources=8530,13157,13169 \n";
+  print "option -u will be https://edt.grenoble-inp.fr/2016-2017/etudiant/ensimag \n";
+  print "option -a will be 8530,13157,13169 \n";
+  print "For more details on arguments go to https://ensiwiki.ensimag.fr/index.php/Emplois_du_temps_en_ligne_avec_ADE , in the rubric \"Créer son URL personnelle\" \n";
+  print "\n";
+  print "Complete exemple : \n";
+  print "Ade_to_ics_Ensimag.pl -u https://edt.grenoble-inp.fr/2016-2017/etudiant/ensimag -a 8530,13157,13169 -l mylogin -p mypassword -d mycalendar.ics \n";
+  print "\n";
+  exit;
+}
+
+if($default_config{'url'} eq 'my_url' & ! defined $opts{u} ){
+  print "use opion --help to get help \n";
+  exit;
+}
+
+
+
+$default_config{'url'} = $opts{u} if defined $opts{u};
+$default_config{'arguments'} = $opts{a} if defined $opts{a};
+$default_config{'login'} = $opts{l} if defined $opts{l};
+$default_config{'password'} = $opts{p} if defined $opts{p};
+$default_config{'destination'} = $opts{d} if defined $opts{d};
+
 my $mech = WWW::Mechanize->new(agent => 'ADEicsEnsimag 0.1', cookie_jar => {});
 
-$mech->credentials( $default_config{'login'},$default_config{'password'}); # Auth HTTP
+if(! $default_config{'login'} eq ""){
+  $mech->credentials( $default_config{'login'},$default_config{'password'}); # Auth HTTP
+}
+
 $mech->get($default_config{'url'});
 die "Error : failed to load page. Check if url works." if (!$mech->success());
 
@@ -59,24 +104,28 @@ my $year = int(strftime("%Y", localtime()));
 # Request to get the ics calendar with the time you want.
 $mech->post('https://edt.grenoble-inp.fr/2016-2017/ensimag/etudiant/jsp/custom/modules/plannings/ical.jsp',
 [startDay => 1,
- startMonth => 8,
- startYear => $year,
- endDay => 1,
- endMonth => 8,
- endYear => $year+1,
- calType => 'ical',
- x => 20, # not important
- y => 10, # not important
- clearTree => 'false'
- ]
- );
+startMonth => 8,
+startYear => $year,
+endDay => 1,
+endMonth => 8,
+endYear => $year+1,
+calType => 'ical',
+x => 20, # not important
+y => 10, # not important
+clearTree => 'false'
+]
+);
 die "Error : Impossible to get the ics file." if (!$mech->success());
 
 print $mech->content;
 
 # Save the file that contains the calendar.
-open(FILE, ">/".$default_config{'destination'}) or die "Can't open file";
+open(FILE, ">".$default_config{'destination'}) or die "Can't open file";
 print FILE $mech->content."\n";
 close(FILE);
+
+
+
+
 
 __END__
