@@ -22,9 +22,12 @@ use utf8;
 use WWW::Mechanize;
 use HTTP::Cookies;
 use Time::Local;
-use Getopt::Std;
 use Getopt::Long;
 binmode STDOUT, ':encoding(utf-8)';
+
+my $day = int(strftime("%d", localtime())); # The number of the current day
+my $mounth = int(strftime("%M", localtime())); # The number of the current mounth
+my $year = int(strftime("%Y", localtime())); # The current year
 
 #----------------------Beginning Configuration----------------------
 my %default_config;
@@ -38,6 +41,13 @@ $default_config{'login'} = '';# my_login
 $default_config{'password'} = '';# my_password
 # Destination of output file.  set "file_name.ics" to have the file in the local folder.
 $default_config{'destination'} = 'my_calendar.ics';
+# Default interval of time, by default is for one year
+$default_config{'startDate'}{'day'} = 1; # start Day
+$default_config{'startDate'}{'mounth'} = 8; # start Mounth
+$default_config{'startDate'}{'year'} = $year; # start year
+$default_config{'endDate'}{'day'} = 1; # end Day
+$default_config{'endDate'}{'mounth'} = 8; # start Mounth
+$default_config{'endDate'}{'year'} = $year + 1; # start Year
 
 # Exemple
 # If your direct url for ade calendar is : https://edt.grenoble-inp.fr/2016-2017/etudiant/ensimag?resources=8530,13157,13169,13183,13191,13164,13165,13163,13153,13152,13151,13175,13149,13177,13179,13185,13181,13171,13189,13147,13155,13145,13159,13167,13173,13142,13141,13143,13187
@@ -48,8 +58,6 @@ $default_config{'destination'} = 'my_calendar.ics';
 #----------------------End Configuration----------------------
 
 my %opts=();
-
-my $verbose=0;
 GetOptions(\%opts, 'u=s', 'a=s', 'l=s', 'p=s', 'd=s', 'help');
 
 if(defined $opts{help}){
@@ -80,7 +88,6 @@ if($default_config{'url'} eq 'my_url' & ! defined $opts{u} ){
 }
 
 
-
 $default_config{'url'} = $opts{u} if defined $opts{u};
 $default_config{'arguments'} = $opts{a} if defined $opts{a};
 $default_config{'login'} = $opts{l} if defined $opts{l};
@@ -99,16 +106,15 @@ die "Error : failed to load page. Check if url works." if (!$mech->success());
 $mech->get($default_config{'url'}.'/jsp/custom/modules/plannings/direct_planning.jsp?resources='.$default_config{'arguments'});
 die "Error :  Impossible to get the asked ressouces." if (!$mech->success());
 
-my $year = int(strftime("%Y", localtime()));
 
 # Request to get the ics calendar with the time you want.
 $mech->post('https://edt.grenoble-inp.fr/2016-2017/ensimag/etudiant/jsp/custom/modules/plannings/ical.jsp',
-[startDay => 1,
-startMonth => 8,
-startYear => $year,
-endDay => 1,
-endMonth => 8,
-endYear => $year+1,
+[startDay => $default_config{'startDate'}{'day'},
+startMonth => $default_config{'startDate'}{'mounth'},
+startYear => $default_config{'startDate'}{'year'},
+endDay => $default_config{'endDate'}{'day'},
+endMonth => $default_config{'endDate'}{'mounth'},
+endYear => $default_config{'endDate'}{'year'},
 calType => 'ical',
 x => 20, # not important
 y => 10, # not important
@@ -117,7 +123,6 @@ clearTree => 'false'
 );
 die "Error : Impossible to get the ics file." if (!$mech->success());
 
-print $mech->content;
 
 # Save the file that contains the calendar.
 open(FILE, ">".$default_config{'destination'}) or die "Can't open file";
