@@ -1,6 +1,8 @@
 #!/usr/bin/env perl
 
-# Author: Etienne Barbier
+# Author:
+# Etienne Barbier Grenoble-inp Ensimag Alternance
+# Nicolas Pamart Grenoble-inp Ensimag Alternance
 
 # This program automates export of ade calendar to ics when :
 # - HTTP (or Apache) authentification is needed.
