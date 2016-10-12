@@ -28,7 +28,7 @@ use Getopt::Long;
 binmode STDOUT, ':encoding(utf-8)';
 
 my $day = int(strftime("%d", localtime())); # The number of the current day
-my $mounth = int(strftime("%M", localtime())); # The number of the current mounth
+my $mounth = int(strftime("%m", localtime())); # The number of the current mounth
 my $year = int(strftime("%Y", localtime())); # The current year
 
 #----------------------Beginning Configuration----------------------
@@ -60,7 +60,7 @@ $default_config{'endDate'}{'year'} = $year + 1; # start Year
 #----------------------End Configuration----------------------
 
 my %opts=();
-GetOptions(\%opts, 'u=s', 'a=s', 'l=s', 'p=s', 'd=s', 'help');
+GetOptions(\%opts, 'u=s', 'a=s', 'l=s', 'p=s', 'd=s' ,'t=i', 'help');
 
 if(defined $opts{help}){
   print "Welcome in the help of the Ade_to_ics_Ensimag script. \n";
@@ -71,6 +71,7 @@ if(defined $opts{help}){
   print "-l your_login         with your_login your login for the ade calendar\n";
   print "-p your_password      with your_password your password for the ade calendar\n";
   print "-d your_destination   with your_destination the location where the .ics file should be saved. By default it's will be my_calendar.ics \n";
+  print "-t number_of_day      with number_of_day the number of days from now that you want for the ics calendar. Without this option the ics calendar is from 1st of August of this year to the 1st of August of next year .\n";
   print "\n";
   print "Exemple : \n";
   print "if your direct url for ade calendar is : https://edt.grenoble-inp.fr/2016-2017/etudiant/ensimag?resources=8530,13157,13169 \n";
@@ -95,6 +96,18 @@ $default_config{'arguments'} = $opts{a} if defined $opts{a};
 $default_config{'login'} = $opts{l} if defined $opts{l};
 $default_config{'password'} = $opts{p} if defined $opts{p};
 $default_config{'destination'} = $opts{d} if defined $opts{d};
+
+if(defined $opts{t}){
+  die "Error : option -t must be bigger than 0." if ($opts{t} < 1);
+  $default_config{'startDate'}{'day'} = $day; # start Day
+  $default_config{'startDate'}{'mounth'} = $mounth; # start Mounth
+  $default_config{'startDate'}{'year'} = $year; # start year
+  my $timestamp = time;
+  $timestamp = $timestamp+(($opts{t}-1)*3600);
+  $default_config{'endDate'}{'day'} = int(strftime("%d", localtime($timestamp))); # end Day
+  $default_config{'endDate'}{'mounth'} = int(strftime("%m", localtime($timestamp))); # start Mounth
+  $default_config{'endDate'}{'year'} = int(strftime("%Y", localtime($timestamp))); # start Year
+}
 
 my $mech = WWW::Mechanize->new(agent => 'ADEicsEnsimag 0.1', cookie_jar => {});
 
