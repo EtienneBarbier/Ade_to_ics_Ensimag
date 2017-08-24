@@ -118,12 +118,22 @@ if(! $default_config{'login'} eq ""){
 $mech->get($default_config{'url'});
 die "Error : failed to load page. Check if url works." if (!$mech->success());
 
-$mech->get($default_config{'url'}.'/jsp/custom/modules/plannings/direct_planning.jsp?resources='.$default_config{'arguments'});
+$mech->get($default_config{'url'}.'/jsp/custom/modules/plannings/direct_planning.jsp');
+die "Error : failed to load page. Check if url works." if (!$mech->success());
+
+my $uri = $mech->uri();
+
+$mech->get($uri.'?resources='.$default_config{'arguments'});
 die "Error :  Impossible to get the asked ressouces." if (!$mech->success());
 
+# Transform direct_planning.jsp url to ical.jsp url
+my $find = "direct_planning.jsp";
+my $replace = "ical.jsp";
+$find = quotemeta $find; # escape regex metachars if present
+$uri =~ s/$find/$replace/g;
 
 # Request to get the ics calendar with the time you want.
-$mech->post('https://edt.grenoble-inp.fr/2016-2017/ensimag/etudiant/jsp/custom/modules/plannings/ical.jsp',
+$mech->post($uri,
 [startDay => $default_config{'startDate'}{'day'},
 startMonth => $default_config{'startDate'}{'mounth'},
 startYear => $default_config{'startDate'}{'year'},
