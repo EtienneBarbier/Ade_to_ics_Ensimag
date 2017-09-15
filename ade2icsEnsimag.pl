@@ -25,6 +25,7 @@ use WWW::Mechanize;
 use HTTP::Cookies;
 use Time::Local;
 use Getopt::Long;
+use open ':encoding(utf-8)';
 binmode STDOUT, ':encoding(utf-8)';
 
 my $day = int(strftime("%d", localtime())); # The number of the current day
