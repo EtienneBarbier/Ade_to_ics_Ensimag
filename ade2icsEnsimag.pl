@@ -8,7 +8,7 @@
 # - HTTP (or Apache) authentification is needed.
 # - exportation to ics file manually need to be possible.
 #
-# It's work for Ensimag school at October 10, 2016.
+# It's work for Ensimag school at January 2, 2018.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -47,10 +47,17 @@ $default_config{'destination'} = 'my_calendar.ics';
 # Default interval of time, by default is for one year
 $default_config{'startDate'}{'day'} = 1; # start Day
 $default_config{'startDate'}{'mounth'} = 8; # start Mounth
-$default_config{'startDate'}{'year'} = $year; # start year
 $default_config{'endDate'}{'day'} = 1; # end Day
 $default_config{'endDate'}{'mounth'} = 8; # start Mounth
-$default_config{'endDate'}{'year'} = $year + 1; # start Year
+# take into account the new year
+if($mounth < $default_config{'startDate'}{'mounth'}){
+  $default_config{'startDate'}{'year'} = $year - 1; # start year
+  $default_config{'endDate'}{'year'} = $year; # start Year
+}else{
+  $default_config{'startDate'}{'year'} = $year; # start year
+  $default_config{'endDate'}{'year'} = $year + 1; # start Year
+}
+
 
 # Exemple
 # If your direct url for ade calendar is : https://edt.grenoble-inp.fr/2016-2017/etudiant/ensimag?resources=8530,13157,13169,13183,13191,13164,13165,13163,13153,13152,13151,13175,13149,13177,13179,13185,13181,13171,13189,13147,13155,13145,13159,13167,13173,13142,13141,13143,13187
